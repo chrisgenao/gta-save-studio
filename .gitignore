@@ -1,0 +1,5 @@
+dist/
+node_modules/
+*.b
+SGTA4xx*
+.DS_Store

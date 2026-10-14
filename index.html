@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#090d17" />
+  <meta name="description" content="Edit original PC savegames for GTA III, Vice City, San Andreas, GTA IV, TLAD and TBoGT privately in your browser." />
+  <title>GTA Save Studio · Six Campaign Save Garage</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div id="app" class="app-shell">
+    <aside class="sidebar" id="primary-sidebar" aria-label="Workspace navigation">
+      <a class="brand" data-home="true" href="/" aria-label="Go to the main dashboard">
+        <div class="brand-symbol">GTA<span>+</span></div>
+        <div class="brand-type">SAVE <strong>STUDIO</strong><span>III • VC • SA • IV • EFLC</span></div>
+      </a>
+      <div class="nav-caption">WORKSPACE</div>
+      <nav class="nav-links" aria-label="Main navigation" id="navigation"></nav>
+      <div class="sidebar-bottom">
+        <div class="safe-banner"><div class="safe-icon" data-icon="lock"></div><div><strong>Private by design</strong><p>Save files never leave this device.</p></div></div>
+        <div class="sidebar-footer"><span class="online-dot"></span> OFFLINE-FIRST EDITOR <span class="version-tag">v2.6</span></div>
+      </div>
+    </aside>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+    <div class="main-column">
+      <header class="topbar">
+        <button type="button" id="sidebar-toggle" class="icon-button sidebar-toggle" aria-controls="primary-sidebar" aria-expanded="true" aria-label="Hide navigation" title="Hide navigation">☰</button>
+        <div class="breadcrumbs"><span>GTA SAVE STUDIO</span><span class="breadcrumb-chevron">›</span><strong id="crumb-label">Overview</strong></div>
+        <div class="top-actions"><span id="top-file-state" class="file-state"><span class="status-dot"></span> No save loaded</span>
+          <button class="button button-quiet button-small" data-action="upload"><span class="button-icon" data-icon="upload"></span> Import save</button>
+          <button class="button button-primary button-small" data-action="export"><span class="button-icon" data-icon="download"></span> Export save</button>
+        </div>
+      </header>
+      <main id="page-content" tabindex="-1"></main>
+    </div>
+  </div>
+  <input id="file-input" type="file"  hidden />
+  <div id="modal-root"></div><div id="toast-root" role="status" aria-live="polite"></div>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>

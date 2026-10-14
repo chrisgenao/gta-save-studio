@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 310" role="img" aria-label="The Lost and Damned">
+<defs><linearGradient id="steel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f1ddba"/><stop offset=".55" stop-color="#c5a780"/><stop offset="1" stop-color="#76614d"/></linearGradient></defs>
+<rect x="14" y="15" width="452" height="280" rx="19" fill="#121317" stroke="#a5855e" stroke-width="6"/>
+<path d="M53 67h374M53 252h374" stroke="#756349" stroke-width="4"/>
+<text x="240" y="103" font-family="Arial,sans-serif" font-size="34" text-anchor="middle" font-weight="900" letter-spacing="12" fill="#dfb77d">THE</text>
+<text x="240" y="183" font-family="Arial Black,Arial,sans-serif" font-size="77" text-anchor="middle" font-weight="900" letter-spacing="-3" fill="url(#steel)" stroke="#28201d" stroke-width="3">LOST</text>
+<text x="240" y="217" font-family="Arial,sans-serif" font-size="21" text-anchor="middle" font-weight="900" letter-spacing="6" fill="#e9d1aa">AND DAMNED</text>
+</svg>
