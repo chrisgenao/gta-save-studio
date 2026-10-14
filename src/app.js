@@ -1,3 +1,4 @@
+import { initAnalytics, trackPageView, trackEditorEvent } from './analytics.js';
 import { SaSave, SAVE_SIZE, SKILLS, SIDE_MISSIONS, REWARD_FLAGS, STAT } from './save-core.js';
 import {ClassicSave,CLASSIC_GAMES,CLASSIC_STATS} from './classic-core.js';
 import {missionStatus,missionRequirements,advanceMissionChain,girlfriendState,GIRLFRIENDS,normalizeMission,MISSION_INDEX} from './mission-core.js';
@@ -376,11 +377,37 @@ function finishNavigation(){
   document.body.classList.remove('menu-open');
   syncNavigationToggle();
 }
+
+// Update metadata on client-side navigation; static crawlers receive matching HTML per route.
+const seoDetails={
+  home:['GTA Save Editor Online | GTA Save Studio – III, VC, SA, IV & Episodes','Free GTA save editor for PC. Upload, edit, and download GTA III, Vice City, San Andreas, GTA IV, TLAD and TBoGT saves locally.',''],
+  III:['GTA III Save Editor Online – Liberty City | GTA Save Studio','Edit GTA III PC saves: money, health, armor, side mission statistics, packages and rewards.','gtaiii'],
+  VC:['GTA Vice City Save Editor Online | GTA Save Studio','Edit Vice City PC saves: cash, health, armor, activities, collectibles, rewards.','gtavc'],
+  SA:['GTA San Andreas Save Editor – CJ Stats & Missions | GTA Save Studio','Edit original GTA San Andreas PC saves: CJ stats, skills, side missions, collectibles and rewards.','gtasa'],
+  IV:['GTA IV Save Editor – Niko’s Stats & Rewards | GTA Save Studio','Edit GTA IV PC saves: Niko’s money, health, armor, relationships and stunt jump records.','gtaiv'],
+  TLAD:['The Lost and Damned Save Editor (TLAD) | GTA Save Studio','Edit supported The Lost and Damned PC save statistics for Johnny Klebitz.','tlad'],
+  TBOGT:['The Ballad of Gay Tony Save Editor (TBoGT) | GTA Save Studio','Edit supported The Ballad of Gay Tony PC save statistics for Luis Lopez.','tbogt']
+};
+function refreshSeo(game='home'){
+  const [title,description,slug]=seoDetails[game]||seoDetails.home;
+  const url='https://chrisgenao.github.io/gta-save-studio/'+(slug?slug+'/':'');
+  document.title=title;
+  for(const [selector,value] of [
+    ['meta[name="description"]',description],['meta[property="og:title"]',title],
+    ['meta[property="og:description"]',description],['meta[name="twitter:title"]',title],
+    ['meta[name="twitter:description"]',description]]){
+    const el=document.querySelector(selector); if(el)el.setAttribute('content',value);
+  }
+  for(const selector of ['link[rel="canonical"]','meta[property="og:url"]']){
+    const el=document.querySelector(selector); if(el)el.setAttribute(selector.startsWith('link')?'href':'content',url);
+  }
+}
+
 function navigateHome({push=true}={}){
  if(state.page!=='home')rememberWorkspace();
  state.page='home';state.expandedGame=null;state.pendingImportGame=null;
  if(push && location.pathname!==HOME_PATH)history.pushState({},'',HOME_PATH);
- closeModal();render();finishNavigation();
+ closeModal();render();finishNavigation();refreshSeo();trackPageView();
 }
 function navigateGame(game,view=null,{push=true,skipPrompt=false}={}){
  if(!GAME_GROUPS.some(g=>g.id===game))return false;
@@ -395,7 +422,7 @@ function navigateGame(game,view=null,{push=true,skipPrompt=false}={}){
  state.workspaces[game].view=state.view;
  const href=routeForGame(game)+(state.view==='overview'?'':'#'+state.view);
  if(push && location.pathname+location.hash!==href)history.pushState({},'',href);
- closeModal();render();finishNavigation();
+ closeModal();render();finishNavigation();refreshSeo(game);trackPageView();
  return true;
 }
 function syncRouteFromLocation(){
@@ -439,10 +466,14 @@ async function upload(file){
    activateWorkspace(game,{save,fileName:file.name});
    state.errors=[];state.classicQuery='';state.missionQuery='';state.pendingImportGame=null;
    navigateGame(game,'overview');
+   trackEditorEvent('save_imported',game);
    notify(selectedGame!==null && selectedGame!==game
       ? `${file.name} is a ${GAME_GROUPS.find(g=>g.id===game).label} save, so it was opened in that game's separate workspace.`
       : `Loaded ${file.name} into ${GAME_GROUPS.find(g=>g.id===game).label} · checksum valid`);
  }catch(error){
+   // Import failures are tracked only as an event without error text or file metadata.
+   const game=state.page==='game'?state.activeGame:state.pendingImportGame;
+   if(game)trackEditorEvent('import_failed',game);
    notify(`${error.message} No existing save was replaced.`,'error');
  }finally{$('#file-input').value='';state.pendingImportGame=null;}
 }
@@ -452,7 +483,7 @@ function exportModal(){if(!ready()){notify('Load a real save before exporting.',
  const filename=['IV','TLAD','TBOGT'].includes(state.activeGame)?((state.fileName||'').match(/^SGTA4(\d\d)$/i)):((state.fileName||outputName(1)).match(/(?:GTA3sf|GTAVCsf|GTASAsf)([1-8])\.b/i));state.selectedSlot=filename?(['IV','TLAD','TBOGT'].includes(state.activeGame)?Math.min(12,Number(filename[1])+1):Number(filename[1])):1;
  $('#modal-root').innerHTML=`<div class="modal-overlay" data-close="yes"><div class="modal-box" role="dialog" aria-modal="true" aria-label="Export save"><div class="modal-header"><div><span class="eyebrow">SAVE YOUR CHANGES</span><h2>Export savegame</h2></div><button class="icon-button" data-action="close-modal" aria-label="Close dialog">${icon('x',19)}</button></div><p>Exporting creates a fresh copy, updates the checksum and leaves your original untouched. Select the destination game slot.</p><div class="export-summary"><span>Changes applied</span><strong>${state.save.changeCount} modification${state.save.changeCount===1?'':'s'}</strong></div><div class="slot-grid">${Array.from({length:['IV','TLAD','TBOGT'].includes(state.activeGame)?12:8},(_,i)=>`<button type="button" class="slot-btn ${state.selectedSlot===i+1?'chosen':''}" data-slot="${i+1}">SLOT ${i+1}</button>`).join('')}</div><div class="output-preview">${icon('folder',18)} <strong id="download-file-name">${outputName()}</strong><span>${fmt.format(state.save?.bytes.length||SAVE_SIZE)} bytes</span></div><button class="button button-primary export-now" data-action="download">${icon('download',19)} Download edited save</button><p class="modal-hint">Back up the existing save in the game's User Files folder before replacing it.</p></div></div>`;
 }
-function download(){const bytes=state.save.export();const blob=new Blob([bytes],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=outputName();document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);closeModal();notify('Save exported with a fresh valid checksum');}
+function download(){const bytes=state.save.export();const blob=new Blob([bytes],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=outputName();document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);closeModal();trackEditorEvent('save_exported',state.activeGame);notify('Save exported with a fresh valid checksum');}
 function handleAction(action){if(action==='upload'){if(state.pendingImportGame===null)state.pendingImportGame=state.page==='game'?state.activeGame:null;$('#file-input').click();}if(action==='demo'&&state.activeGame==='SA'){if(!confirmDiscard({replacing:true}))return;state.demo=true;state.save=null;state.fileName=null;render();notify('Sample preview enabled. No file has been modified.');}if(action==='export')exportModal();if(action==='close-modal')closeModal();if(action==='download')download();if(action==='reset'){if(ready()){state.save=state.save.reset();render();notify('All edits reverted to your originally imported save');}}if(action==='mission-apply' && state.activeGame==='SA' && state.save instanceof SaSave){
   const checkbox=$('#mission-risk-ack');
   if(!checkbox?.checked || !state.pendingMission)return;
@@ -535,5 +566,6 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMob
 window.addEventListener('beforeunload',e=>{if(ready()&&state.save.changeCount>0){e.preventDefault();e.returnValue='';}});
 window.addEventListener('popstate',syncRouteFromLocation);
 window.addEventListener('hashchange',syncRouteFromLocation);
+initAnalytics();
 syncRouteFromLocation();
 syncNavigationToggle();

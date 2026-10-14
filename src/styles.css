@@ -323,3 +323,14 @@ button:disabled{cursor:not-allowed}
 .legal-page .back-link{display:inline-flex;align-items:center;margin-bottom:26px;text-decoration:none;font-size:12px;font-weight:800}
 .legal-page .back-link:hover{text-decoration:underline}
 .legal-page .legal-notice{padding:20px 21px;margin:20px 0;border:1px solid rgba(185,161,249,.25);border-radius:15px;background:rgba(164,130,250,.09);color:#e4dafb;font-weight:600}
+
+/* Optional, explicit opt-in analytics banner */
+.analytics-consent{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);width:min(760px,calc(100% - 32px));z-index:9999;background:rgba(17,24,40,.97);border:1px solid rgba(171,185,223,.35);box-shadow:0 20px 75px #0009;border-radius:16px;padding:19px 22px;display:flex;align-items:center;gap:22px;backdrop-filter:blur(18px);color:#f2f6ff}
+.analytics-consent-copy{flex:1;min-width:0}
+.analytics-consent-copy strong{font-size:14px}
+.analytics-consent-copy p{font-size:12px;line-height:1.6;color:#aebbd1;margin:7px 0 0}
+.analytics-consent-copy a{color:#c4b5fd;text-decoration:underline}
+.analytics-consent-actions{display:flex;gap:9px;flex:none}
+.site-footer-extra-links{margin-top:9px;display:flex;gap:14px;flex-wrap:wrap;font-size:12px}
+.site-footer-extra-links a{color:#b4c0d9}
+@media(max-width:640px){.analytics-consent{align-items:stretch;flex-direction:column;gap:15px;padding:18px}.analytics-consent-actions .button{flex:1}}

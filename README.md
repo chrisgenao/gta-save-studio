@@ -1,3 +1,9 @@
+# GTA Save Studio v3.0 — Search Visibility & Analytics
+
+**New:** Search-friendly pages for all six GTA games, a sitemap, canonical/social metadata, an opt-in Google Analytics 4 integration, and privacy controls. **Start with [`SEO-ANALYTICS-SETUP.md`](SEO-ANALYTICS-SETUP.md)** for GitHub Pages publishing, Google Search Console verification, and statistics setup. Analytics is OFF until you add your public `G-...` measurement ID and a visitor agrees. Save-file content is not transmitted.
+
+---
+
 
 ## GitHub Pages project deployment
 

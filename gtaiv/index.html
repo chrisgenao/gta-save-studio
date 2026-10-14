@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#090d17" />
+  <!-- SEO METADATA START -->
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <link rel="canonical" href="https://chrisgenao.github.io/gta-save-studio/gtaiv/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="GTA Save Studio" />
+  <meta property="og:title" content="GTA IV Save Editor – Niko’s Stats &amp; Rewards | GTA Save Studio" />
+  <meta property="og:description" content="Edit original GTA IV PC SGTA4 saves. Manage Niko’s money, health, armor, friendships, stunt jump records, and supported perk flags in your browser." />
+  <meta property="og:url" content="https://chrisgenao.github.io/gta-save-studio/gtaiv/" />
+  <meta property="og:image" content="https://chrisgenao.github.io/gta-save-studio/assets/social-preview.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="GTA IV Save Editor – Niko’s Stats &amp; Rewards | GTA Save Studio" />
+  <meta name="twitter:description" content="Edit original GTA IV PC SGTA4 saves. Manage Niko’s money, health, armor, friendships, stunt jump records, and supported perk flags in your browser." />
+  <meta name="twitter:image" content="https://chrisgenao.github.io/gta-save-studio/assets/social-preview.png" />
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"GTA IV PC Save Editor – GTA Save Studio","url":"https://chrisgenao.github.io/gta-save-studio/gtaiv/","description":"Edit original GTA IV PC SGTA4 saves. Manage Niko’s money, health, armor, friendships, stunt jump records, and supported perk flags in your browser.","operatingSystem":"Any (modern web browser)","applicationCategory":"UtilitiesApplication","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"creator":{"@type":"Organization","name":"GTA Save Studio (independent fan project)"}}</script>
+  <!-- SEO METADATA END -->
+  <meta name="description" content="Edit original GTA IV PC SGTA4 saves. Manage Niko’s money, health, armor, friendships, stunt jump records, and supported perk flags in your browser." />
+  <title>GTA IV Save Editor – Niko’s Stats &amp; Rewards | GTA Save Studio</title>
+  <!-- The base URL adapts to username.github.io, /repo/, and direct game pages. -->
+  <script>
+  (function () {
+    const path = window.location.pathname;
+    const route = /\/(gtaiii|gtavc|gtasa|gtaiv|tlad|tbogt)\/?$/;
+    const root = route.test(path)
+      ? path.replace(route, '/')
+      : path.endsWith('/') ? path : path.slice(0, path.lastIndexOf('/') + 1);
+    const tag = document.createElement('base');
+    tag.href = root;
+    document.head.appendChild(tag);
+  }());
+  </script>
+  <script>
+  (function(){
+    const qs=new URLSearchParams(location.search);
+    const route=qs.get('__page');
+    if(route && /^\/(gtaiii|gtavc|gtasa|gtaiv|tlad|tbogt)$/.test(route)){
+      const query=qs.get('__query');
+      const base = new URL(document.baseURI).pathname.replace(/\/+$/,'');
+      history.replaceState(null,'',base+route+(query?'?'+query:'')+location.hash);
+    }
+  }());
+  </script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="stylesheet" href="src/styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div id="app" class="app-shell">
+    <aside class="sidebar" id="primary-sidebar" aria-label="Game navigation">
+      <a class="brand" data-home="true" href="." aria-label="Go to the main dashboard">
+        <div class="brand-symbol">GTA<span>+</span></div>
+        <div class="brand-type">SAVE <strong>STUDIO</strong><span>III • VC • SA • IV • EFLC</span></div>
+      </a>
+      <div class="nav-caption">GAMES</div>
+      <nav class="nav-links" aria-label="Main navigation" id="navigation"></nav>
+      <div class="sidebar-bottom">
+        <div class="safe-banner"><div class="safe-icon" data-icon="lock"></div><div><strong>Private by design</strong><p>Save files never leave this device.</p></div></div>
+        <a class="sidebar-legal-link" href="disclaimer.html">Unofficial project · Disclaimer <span aria-hidden="true">↗</span></a>
+        <div class="sidebar-footer"><span class="online-dot"></span> LOCAL FILE EDITOR <span class="version-tag">v3.0</span></div>
+      </div>
+    </aside>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+    <div class="main-column">
+      <header class="topbar">
+        <button type="button" id="sidebar-toggle" class="icon-button sidebar-toggle" aria-controls="primary-sidebar" aria-expanded="true" aria-label="Hide navigation" title="Hide navigation">☰</button>
+        <div class="breadcrumbs"><span>GTA SAVE STUDIO</span><span class="breadcrumb-chevron">›</span><strong id="crumb-label">Overview</strong></div>
+        <div class="top-actions"><span id="top-file-state" class="file-state"><span class="status-dot"></span> No save loaded</span>
+          <button class="button button-quiet button-small" data-action="upload"><span class="button-icon" data-icon="upload"></span> Import save</button>
+          <button class="button button-primary button-small" data-action="export"><span class="button-icon" data-icon="download"></span> Export save</button>
+        </div>
+      </header>
+      <main id="page-content" tabindex="-1"><section class="seo-fallback" aria-label="About this save editor"><h1>GTA IV PC Save Editor</h1><p>Open a supported original GTA IV PC save for Niko Bellic, review recorded progression, money, health, armor, relationships and stunt jump statistics, then export edits with a regenerated checksum.</p><p>To edit a save file, enable JavaScript and choose “Import save”. Save-file contents are processed locally in your browser, not uploaded to a server.</p><p><a href="./">GTA Save Studio homepage</a></p></section></main>
+      <footer class="site-legal-footer" aria-label="Legal notice">
+        <div class="site-legal-content">
+          <span class="site-legal-label">UNOFFICIAL FAN PROJECT · EDUCATIONAL PURPOSES ONLY</span>
+          <p><strong>Independent project.</strong> GTA Save Studio is not affiliated with, sponsored, authorized or endorsed by Rockstar Games, Rockstar North, Take-Two Interactive, or their companies or websites. All game names, logos and trademarks belong to their respective owners.</p>
+          <a class="site-legal-link" href="disclaimer.html">Read full disclaimer <span aria-hidden="true">↗</span></a><div class="site-footer-extra-links"><a href="privacy.html">Privacy & analytics</a><a href="privacy.html" data-analytics-preferences>Analytics preferences</a></div>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <input id="file-input" type="file"  hidden />
+  <div id="modal-root"></div><div id="toast-root" role="status" aria-live="polite"></div>
+  <script type="module" src="src/app.js"></script>
+</body>
+</html>

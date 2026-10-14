@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://chrisgenao.github.io/gta-save-studio/sitemap.xml
