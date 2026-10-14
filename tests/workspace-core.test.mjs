@@ -10,18 +10,15 @@ test('six-game accordion groups are ordered and unique',()=>{
   assert.deepEqual(GAME_GROUPS.map(g=>g.label),['GTA III','GTA Vice City','GTA San Andreas','GTA IV','The Lost and Damned','The Ballad of Gay Tony']);
   assert.equal(new Set(GAME_GROUPS.map(g=>g.id)).size,6);
 });
-test('workspaces keep independent imported saves, views and filenames',()=>{
+test('game preferences do not create saved-file collections',()=>{
   const workspaces=makeWorkspace();
-  const a={game:'III',changeCount:3},b={game:'VC',changeCount:4},c={game:'SA',changeCount:1};
-  Object.assign(workspaces.III,{save:a,fileName:'GTA3sf1.b',view:'stats'});
-  Object.assign(workspaces.VC,{save:b,fileName:'GTAVCsf1.b',view:'rewards'});
-  Object.assign(workspaces.SA,{save:c,fileName:'GTASAsf1.b',view:'checklist'});
+  workspaces.III.view='stats';workspaces.VC.view='rewards';workspaces.SA.view='checklist';
   assert.notEqual(workspaces.III,workspaces.VC);
-  assert.equal(workspaces.III.save,a);
-  assert.equal(workspaces.VC.save,b);
-  assert.equal(workspaces.SA.save,c);
+  for(const work of Object.values(workspaces)){
+    assert.equal(Object.hasOwn(work,'save'),false);
+    assert.equal(Object.hasOwn(work,'fileName'),false);
+  }
   assert.deepEqual([workspaces.III.view,workspaces.VC.view,workspaces.SA.view],['stats','rewards','checklist']);
-  assert.deepEqual([workspaces.III.fileName,workspaces.VC.fileName,workspaces.SA.fileName],['GTA3sf1.b','GTAVCsf1.b','GTASAsf1.b']);
 });
 test('format classes map to correct accordion; no filenames required',()=>{
   assert.equal(gameForSave({game:'III'}),'III');

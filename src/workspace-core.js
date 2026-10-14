@@ -1,6 +1,6 @@
 import {routeForGame} from './routes.js';
 const assetPath = (name) => (typeof document !== 'undefined' ? new URL('assets/'+name,document.baseURI).pathname : '/assets/'+name);
-/** Independent in-memory workspaces for six PC Grand Theft Auto campaigns. */
+/** Game navigation and view preferences only; save files are never cached by game. */
 export const GAME_GROUPS=Object.freeze([
   {id:'III',label:'GTA III',subtitle:'Liberty City · Claude',monogram:'III',route:routeForGame('III'),logo:assetPath('gta-iii.png')},
   {id:'VC',label:'GTA Vice City',subtitle:'Vice City · Tommy',monogram:'VC',route:routeForGame('VC'),logo:assetPath('gta-vc.png')},
@@ -9,9 +9,9 @@ export const GAME_GROUPS=Object.freeze([
   {id:'TLAD',label:'The Lost and Damned',subtitle:'GTA IV episode · Johnny',monogram:'TLAD',route:routeForGame('TLAD'),logo:assetPath('gta-tlad.png')},
   {id:'TBOGT',label:'The Ballad of Gay Tony',subtitle:'GTA IV episode · Luis',monogram:'TBOGT',route:routeForGame('TBOGT'),logo:assetPath('gta-tbogt.png')},
 ]);
-// View preferences are intentionally stored separately for each game.
+// View preferences are stored separately; only the active editor holds a save.
 export const WORKSPACE_SETTINGS=Object.freeze(['view','demo','sideFilter','skillGroup','statQuery','classicGroup','classicQuery','missionQuery','selectedSlot','ivGroup','ivQuery']);
-const workspaceDefaults=()=>({save:null,fileName:null,view:'overview',demo:false,sideFilter:'all',skillGroup:'Body',statQuery:'',classicGroup:'Activities',classicQuery:'',missionQuery:'',selectedSlot:1,ivGroup:'Relationships',ivQuery:''});
+const workspaceDefaults=()=>({view:'overview',demo:false,sideFilter:'all',skillGroup:'Body',statQuery:'',classicGroup:'Activities',classicQuery:'',missionQuery:'',selectedSlot:1,ivGroup:'Relationships',ivQuery:''});
 export function makeWorkspace(){return Object.fromEntries(GAME_GROUPS.map(g=>[g.id,workspaceDefaults()]));}
 export function gameForSave(save){
   const game=save?.game;

@@ -7,9 +7,9 @@ This repository includes a portable `index.html` and `404.html` for project URLs
 
 A local-first, glassmorphism savegame editor for **Grand Theft Auto III**, **GTA: Vice City**, **GTA: San Andreas**, **GTA IV**, **The Lost and Damned**, and **The Ballad of Gay Tony** (PC saves).
 
-- **Six isolated game workspaces.** The GTA San Andreas overview and editors are exclusively for CJ and San Andreas save data. GTA III, Vice City and GTA IV have their own game-specific screens. Drop any supported save file or use **Import save**: the file is detected by its binary format and routed to its game, regardless of the currently open section.
+- **Six independent game editors.** The GTA San Andreas overview and editors are exclusively for CJ and San Andreas save data. GTA III, Vice City and GTA IV have their own game-specific screens. Drop any supported save file or use **Import save**: the file is detected by its binary format and routed to its game, regardless of the currently open section.
 - **Real binary editing** — not a visual mockup. Money, health, armor, activity stats and supported rewards are modified inside a copy of the save file. On export, a fresh checksum is calculated.
-- **Independent, documented schemas and editor state** for GTA III, Vice City, San Andreas and GTA IV. Saves, pending changes, search filters, skill tabs and slot selection remain separate across workspaces; offsets and valid edit types are not reused between games.
+- **Independent, documented schemas** for GTA III, Vice City, San Andreas and GTA IV. Only one save file is open at a time; each editor knows its own valid fields and binary layout.
 - **No account, database, external API or uploads.** Save files stay in browser memory. The included Node server only serves static files.
 - Full-width glassmorphism design, a working desktop sidebar collapse, mobile slide-out navigation, statistic editors, reward switches, and 8-slot classic export and 12-slot GTA IV export.
 - **San Andreas Mission Tracker** with saved-script-counter evidence (✓ passed, ✕ not passed, ? unverified), per-mission prerequisite inspection, and a restricted advanced counter editor.
@@ -31,14 +31,14 @@ The app **always starts on the main dashboard at `/`**, not on an individual gam
 
 The sidebar has **Main Dashboard** first, followed by six expandable game sections with their own logos. Main dashboard cards also link directly to the correct editor. Inside each game, subpages are represented by fragments such as `/gtasa#stats` or `/gtavc#rewards`. Links work when entered directly or refreshed because the included local Node.js server serves the app for all seven routes. Back and Forward navigation work while the app stays open.
 
-You can **import any supported PC save on the dashboard**; it automatically opens the matching game URL. The six workspaces keep independent loaded saves and in-memory edits while you switch games. A browser refresh starts a new session and clears those in-memory saves, so export your changes before refreshing. Your original files on disk are never overwritten.
+You can **import any supported PC save on the dashboard**; it automatically opens the matching game URL. This is a **one-file-at-a-time editor**, not a save library. Switching to another game closes the current save (with a warning if it has pending edits). The main dashboard does not list previously opened files. A browser refresh clears the current file, so export before refreshing. Your original files on disk are never overwritten.
 
-Game logos live in `assets/` and come from the three image files supplied for the project. The app uses no external image or font hosting. GTA IV uses your supplied transparent PNG logo; the classic trilogy also uses your uploaded logos. The two EFLC episodes use newly created title artwork.
+Game logos live in `assets/` and come from the three image files supplied for the project. The app uses no external image or font hosting. GTA IV uses your supplied transparent PNG logo; the classic trilogy also uses your uploaded logos. The two EFLC episodes use the logos provided by the user.
 
 
 ## v2.6: Episodes from Liberty City
 
-The main dashboard has **six campaign cards**. GTA IV uses the uploaded transparent `IV` logo. TLAD and TBoGT have distinctive **original SVG title treatments**, not official game logos. These episodes each have isolated workspaces and direct routes `/tlad` and `/tbogt`.
+The main dashboard has **six campaign cards**. GTA IV uses the uploaded transparent `IV` logo. TLAD and TBoGT use the **two user-supplied transparent logo images**. These episodes each have dedicated editors and direct routes `/tlad` and `/tbogt`.
 
 **Important distinction:** all three HD-era games use the same `SGTA4xx` PC container. The browser recognizes the save episode from the **UTF-16 title** in its metadata, requiring the `TLAD - ` or `TBoGT - ` title prefix for the respective expansion (per GTAMods). Rename-protection ensures editing a title never silently changes the game's episode identity. A file not carrying either episode prefix is treated as the base GTA IV save. The filename is **not** enough to distinguish the games.
 
@@ -99,7 +99,7 @@ Example on Windows: `C:\Users\<WindowsUser>\Documents\GTA Vice City User Files\G
 
 1. Make a **backup** of the existing save from the game's User Files directory.
 2. Click **Import save**, choose a `.b` file, or drag/drop it onto the website.
-3. Start on the **Main Dashboard** at `/`, or navigate directly to `/gtaiii`, `/gtavc`, `/gtasa`, `/gtaiv`, `/tlad`, or `/tbogt`. Choose the matching game accordion in the sidebar. **San Andreas** shows only CJ-specific features, **Liberty City** only GTA III features, and **Vice City** only Tommy's features. Importing a different supported game automatically redirects to its own accordion without moving another game's save. Open **Overview** to inspect the save title, progress, cash, health, armor and recorded activities.
+3. Start on the **Main Dashboard** at `/`, or navigate directly to `/gtaiii`, `/gtavc`, `/gtasa`, `/gtaiv`, `/tlad`, or `/tbogt`. Choose the matching game accordion in the sidebar. **San Andreas** shows only CJ-specific features, **Liberty City** only GTA III features, and **Vice City** only Tommy's features. Importing a different supported game automatically redirects to its own accordion without storing earlier saves. Open **Overview** to inspect the save title, progress, cash, health, armor and recorded activities.
 4. Open **Player Statistics** for game-specific counters. GTA SA has body, vehicle and weapon skill sliders. GTA III and Vice City have health/armor sliders and exact inputs for their documented stats.
 5. Open **Side Missions** to change highest levels where stored, or the actual recorded counters otherwise.
 6. Use **Mission Tracker** (San Andreas) to inspect mission completion and requirements. Selecting a mission shows the SCM chain evidence. If every supported prerequisite is satisfied, you may explicitly acknowledge and request a **chain-counter-only edit**, but be aware this is **not a genuine full mission completion**; further native mission side effects may be missing. Girlfriend unlock editing is deliberately disabled.
@@ -211,7 +211,7 @@ The sidebar now contains **three independent collapsible game workspaces **in th
 - **GTA Vice City** (Tommy Vercetti)
 - **GTA San Andreas** (CJ)
 
-Expand any game section to access its game-specific overview, statistics, side mission records, completion overview/tracker, collectibles, rewards and settings. Once imported, each save is kept in its own **in-memory workspace**, including unexported changes, while switching games. The green indicator marks an imported file. Uploading or dragging a save automatically opens the matching game section. Files must still be backed up; nothing is silently written to disk.
+Expand any game section to access its game-specific overview, statistics, side mission records, completion overview/tracker, collectibles, rewards and settings. In versions up to 2.9, each save was kept in its own in-memory workspace. **As of v2.10, only one active save is retained in memory**, and there is no per-game loaded indicator. Uploading or dragging a save automatically opens the matching game section. Files must still be backed up; nothing is silently written to disk.
 
 Two supplied PC saves were used for **manual binary integration checks** (the save files are *not* part of this source package). Both had valid checksums and each showed 100% completion. These revealed and helped fix:
 
@@ -261,3 +261,13 @@ The project includes an automatic GitHub Actions deployment workflow. See **[GIT
 Every editor page includes a persistent legal footer and an accessible **Read full disclaimer** link. The sidebar also links to `disclaimer.html`, an independent legal-notice page. The page is compatible with local hosting and GitHub Pages both from the branch root and the included GitHub Actions workflow.
 
 **Disclaimer:** GTA Save Studio is an independent, unofficial fan-made project for educational purposes only. It is not affiliated with, sponsored by, or endorsed by Rockstar Games, Rockstar North, Take-Two Interactive, or their related companies or sites. All related trademarks belong to their owners. Back up saves before editing.
+
+
+## v2.10 — Single-save editing flow
+
+- Homepage and sidebar no longer show workspace loaded counts, file collections, or per-game loaded badges.
+- **Choose a save → Edit locally → Download** is the core workflow.
+- A single file remains open in the current browser tab while editing. Changing to another game's editor releases it from the app's state; you'll be prompted first if it has pending edits.
+- Returning to the homepage does not immediately discard the currently open file. Returning to its game editor in the same tab resumes editing.
+- Importing a new file replaces the current file, with a confirmation if you have pending edits.
+- The site does **not** send save data to a server or persist it in localStorage, IndexedDB, or any database. Closing/reloading the tab loses the editing session.

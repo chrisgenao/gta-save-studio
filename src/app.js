@@ -55,9 +55,9 @@ const ready = () => !!state.save;
 function currentNav() { return state.activeGame==='SA' ? nav : ['IV','TLAD','TBOGT'].includes(state.activeGame) ? hdNavigation(state.activeGame) : CLASSIC_NAV; }
 function currentPrefix() { return ['IV','TLAD','TBOGT'].includes(state.activeGame) ? 'SGTA4' : state.activeGame==='SA' ? 'GTASAsf' : CLASSIC_GAMES[state.activeGame].filePrefix; }
 function outputName(slot=state.selectedSlot) { return ['IV','TLAD','TBOGT'].includes(state.activeGame) ? `SGTA4${String(slot-1).padStart(2,'0')}` : `${currentPrefix()}${slot}.b`; }
+// Keep only UI preferences per game; actual save bytes belong to one active session.
 function rememberWorkspace(){
   const workspace=state.workspaces[state.activeGame];
-  Object.assign(workspace,{save:state.save,fileName:state.fileName});
   for(const name of WORKSPACE_SETTINGS)workspace[name]=state[name];
 }
 function activateWorkspace(game,{save,fileName}={}){
@@ -69,14 +69,28 @@ function activateWorkspace(game,{save,fileName}={}){
     }
   }
   rememberWorkspace();
+  if(state.activeGame!==game){
+    // Prevent the site from retaining a collection of uploaded save files.
+    state.save=null;
+    state.fileName=null;
+    state.demo=false;
+  }
   state.activeGame=game;
   const workspace=state.workspaces[game];
-  if(save!==undefined)Object.assign(workspace,{save,fileName,view:'overview',demo:false});
-  assertWorkspaceSave(workspace.save,game);
-  state.save=workspace.save;state.fileName=workspace.fileName;
+  if(save!==undefined){
+    state.save=save;
+    state.fileName=fileName;
+    Object.assign(workspace,{view:'overview',demo:false});
+  }
   for(const name of WORKSPACE_SETTINGS)state[name]=workspace[name];
+  assertWorkspaceSave(state.save,game);
   state.expandedGame=game;
   state.pendingMission=null;
+}
+function confirmDiscard({replacing=false}={}){
+  if(!ready() || state.save.changeCount===0)return true;
+  const purpose=replacing?'open a different file':'switch game editors';
+  return window.confirm(`You have ${state.save.changeCount} pending change(s) to ${state.fileName || 'the open save'}. Download the edited save before you ${purpose}. Discard these changes and continue?`);
 }
 function assetPath(name){return `${HOME_PATH}assets/${name}`;}
 function logo(game){
@@ -87,12 +101,12 @@ function renderNavigation() {
  const onHome=state.page==='home';
  const menu=currentNav();
  $('#navigation').innerHTML=`<a href="${HOME_PATH}" class="nav-link home-nav-link ${onHome?'active':''}" data-home="true" ${onHome?'aria-current="page"':''}>${icon('layout-dashboard',17)}<span>Main Dashboard</span>${onHome?'<span class="nav-arrow">›</span>':''}</a><div class="game-nav-heading">YOUR GAMES</div>`+GAME_GROUPS.map(group=>{
-  const expanded=!onHome&&state.expandedGame===group.id,loaded=Boolean(state.workspaces[group.id].save),active=!onHome&&state.activeGame===group.id;
+  const expanded=!onHome&&state.expandedGame===group.id,active=!onHome&&state.activeGame===group.id;
   const groupMenu=group.id==='SA'?nav:['IV','TLAD','TBOGT'].includes(group.id)?hdNavigation(group.id):CLASSIC_NAV;
   return `<section class="game-nav-group ${expanded?'is-expanded':''} ${active?'is-current':''}">
    <button class="game-accordion game-${group.id.toLowerCase()}" type="button" data-game="${group.id}" aria-expanded="${expanded}" aria-controls="game-nav-${group.id}" aria-label="Open ${escapeHtml(group.label)}">
-   <span class="game-accordion-logo">${logo(group.id)}</span><span class="game-accordion-copy"><strong>${escapeHtml(group.label)}</strong><small>${loaded?'Save loaded · '+state.workspaces[group.id].save.changeCount+' edits':escapeHtml(group.subtitle)}</small></span>
-   <span class="game-accordion-end">${loaded?'<i class="game-loaded-dot" aria-label="Save loaded"></i>':''}${icon('chevron',14)}</span></button>
+   <span class="game-accordion-logo">${logo(group.id)}</span><span class="game-accordion-copy"><strong>${escapeHtml(group.label)}</strong><small>${escapeHtml(group.subtitle)}</small></span>
+   <span class="game-accordion-end">${icon('chevron',14)}</span></button>
    <div id="game-nav-${group.id}" class="game-accordion-panel" ${expanded?'':'hidden'}>
     ${groupMenu.map(([id,glyph,label])=>`<button class="nav-link ${active&&state.view===id?'active':''}" data-view="${id}" data-game-scope="${group.id}" type="button">${icon(glyph,17)} <span>${label}</span>${active&&state.view===id?'<span class="nav-arrow">›</span>':''}</button>`).join('')}
    </div></section>`;
@@ -103,8 +117,8 @@ function renderNavigation() {
  $('.brand-type > span').textContent=onHome?'SIX CAMPAIGN SAVE GARAGE':`${group.label} edition`;
  $('.breadcrumbs > span:first-child').textContent=onHome?'GTA SAVE STUDIO':`${group.label.replace('GTA: ','')} / EDITOR`;
  $('#top-file-state').innerHTML=onHome
-  ? `<span class="status-dot ${GAME_GROUPS.some(g=>state.workspaces[g.id].save)?'ready':''}"></span> ${GAME_GROUPS.filter(g=>state.workspaces[g.id].save).length} of ${GAME_GROUPS.length} saves loaded`
-  : `<span class="status-dot ${ready()?'ready':''}"></span> ${ready()?escapeHtml(state.fileName):state.demo?'Preview mode':'No save loaded'}`;
+  ? `${icon('shield',15)} Upload · Edit · Download`
+  : `<span class="status-dot ${ready()?'ready':''}"></span> ${ready()?escapeHtml(state.fileName):state.demo?'Preview mode':'Choose a save file'}`;
  document.querySelectorAll('[data-action="export"]').forEach(button=>{
   button.hidden=onHome;
   button.disabled=onHome||!ready();
@@ -112,15 +126,14 @@ function renderNavigation() {
  });
 }
 function viewHome(){
- const loaded=GAME_GROUPS.filter(g=>Boolean(state.workspaces[g.id].save)).length;
  const previews={TLAD:{name:'The Lost and Damned',player:'Johnny Klebitz',tag:'EPISODE ONE',caption:'Manage Johnny’s cash, health, biker relationships, gang wars, races, seagulls and safe activity records.',features:'Johnny · Gang wars · Biker stats · Rewards'},TBOGT:{name:'The Ballad of Gay Tony',player:'Luis Lopez',tag:'EPISODE TWO',caption:'Explore Luis’s nightclub stats, drug wars, base jumps, cage fights, golf and player perks.',features:'Luis · Nightlife · Base jumps · Rewards'},IV:{name:'GTA IV',player:'Niko Bellic',tag:'THE HD ERA',caption:'Dive into Liberty City, edit Niko’s money, health, armor, stats, friendships and verified save rewards.',features:'Niko · Friendships · Stunt jumps · Rewards'},III:{name:'Liberty City',player:'Claude',tag:'THE ORIGINAL',caption:'Return to the streets of Liberty City. Edit player records, side activities, hidden packages and documented perks.',features:'Statistics · Activities · Packages · Rewards'},VC:{name:'Vice City',player:'Tommy Vercetti',tag:'NEON LEGENDS',caption:'Manage Tommy’s stats, story completion percentage, side activities, hidden packages and bonuses.',features:'Statistics · Activities · Packages · Rewards'},SA:{name:'San Andreas',player:'Carl Johnson',tag:'WEST COAST CLASSIC',caption:'Unlock CJ’s editor with skill sliders, mission tracker, relationships, collectibles and rewards.',features:'Skills · Mission tracker · Relationships · Rewards'}};
- return `<section class="home-hero"><div class="home-hero-copy"><span class="eyebrow">WELCOME TO THE GARAGE</span><h1>Six campaigns.<br/><em>One save studio.</em></h1><p>A private editor for GTA III, Vice City, San Andreas, GTA IV and both Episodes from Liberty City. Choose a game to open its dedicated workspace or import a supported PC save to enter the correct editor.</p><div class="home-hero-actions"><button class="button button-primary" data-action="upload">${icon('upload',17)} Import a save</button><span class="home-status"><span class="online-dot"></span> ${loaded} / ${GAME_GROUPS.length} workspaces loaded</span></div></div><div class="home-hero-logos" aria-hidden="true"><img src="${assetPath('gta-iii.png')}" alt=""/><img src="${assetPath('gta-vc.png')}" alt=""/><img src="${assetPath('gta-sa.png')}" alt=""/><img src="${assetPath('gta-iv.png')}" alt=""/></div></section>
- <div class="section-header home-section-title"><div><h3>Choose your game</h3><p>Each city has its own editor, save file and independent edits. Nothing crosses over between games.</p></div><span class="small-label">PC SAVE COLLECTION</span></div>
+ return `<section class="home-hero"><div class="home-hero-copy"><span class="eyebrow">WELCOME TO THE GARAGE</span><h1>Six campaigns.<br/><em>One save studio.</em></h1><p>Upload a GTA PC save from your device, make your edits in the matching game editor, and download the result. No accounts, uploads to a server, or cloud storage.</p><div class="home-hero-actions"><button class="button button-primary" data-action="upload">${icon('upload',17)} Choose a save to edit</button><span class="home-status">${icon('lock',15)} Private · One file at a time</span></div></div><div class="home-hero-logos" aria-hidden="true"><img src="${assetPath('gta-iii.png')}" alt=""/><img src="${assetPath('gta-vc.png')}" alt=""/><img src="${assetPath('gta-sa.png')}" alt=""/><img src="${assetPath('gta-iv.png')}" alt=""/></div></section>
+ <div class="section-header home-section-title"><div><h3>Choose your game</h3><p>Open a dedicated editor, select a local save, make changes, then export it. Switching games closes the current save.</p></div><span class="small-label">SUPPORTED PC GAMES</span></div>
  <section class="home-game-grid">${GAME_GROUPS.map(group=>{
-  const game=group.id,info=previews[game],work=state.workspaces[game],save=work.save;
-  return `<article class="home-game-card home-game-${game.toLowerCase()}"><div class="home-game-card-head"><span class="home-game-edition">${info.tag}</span><span class="home-game-loaded ${save?'loaded':''}">${save?'● SAVE LOADED':'○ NO SAVE'}</span></div><div class="home-logo-stage">${logo(game)}<div class="home-card-aura"></div></div><div class="home-game-body"><span class="home-game-eyebrow">${escapeHtml(group.label)} · ${escapeHtml(info.player)}</span><h3>${info.name}</h3><p>${info.caption}</p>${save?`<div class="home-save-summary"><span>Progress <b>${numeric(save.progress,2)}%</b></span><span>Changes <b>${save.changeCount}</b></span></div><div class="home-save-file" title="${escapeHtml(work.fileName)}">${icon('folder',14)} ${escapeHtml(work.fileName)}</div>`:`<div class="home-feature-note">${info.features}</div>`}<div class="home-card-actions"><a href="${routeForGame(game)}" class="button button-primary home-open-link" data-open-game="${game}">${save?'Continue editing':'Open workspace'} ${icon('arrow',16)}</a><button type="button" class="button button-quiet home-import" data-action="upload" data-import-game="${game}" aria-label="Import ${escapeHtml(group.label)} save">${icon('upload',16)}</button></div></div></article>`;
+  const game=group.id,info=previews[game];
+  return `<article class="home-game-card home-game-${game.toLowerCase()}"><div class="home-game-card-head"><span class="home-game-edition">${info.tag}</span></div><div class="home-logo-stage">${logo(game)}<div class="home-card-aura"></div></div><div class="home-game-body"><span class="home-game-eyebrow">${escapeHtml(group.label)} · ${escapeHtml(info.player)}</span><h3>${info.name}</h3><p>${info.caption}</p><div class="home-feature-note">${info.features}</div><div class="home-card-actions"><a href="${routeForGame(game)}" class="button button-primary home-open-link" data-open-game="${game}">Open editor ${icon('arrow',16)}</a><button type="button" class="button button-quiet home-import" data-action="upload" data-import-game="${game}" aria-label="Choose ${escapeHtml(group.label)} save">${icon('upload',16)}</button></div></div></article>`;
  }).join('')}</section>
- <section class="home-info-strip"><div>${icon('lock',23)}<span><strong>100% local</strong><small>Files never leave your browser</small></span></div><div>${icon('shield',23)}<span><strong>Game-aware editing</strong><small>Independent save formats and safe export</small></span></div><div>${icon('download',23)}<span><strong>Original preserved</strong><small>Export a new game save with its checksum</small></span></div></section>`;
+ <section class="home-info-strip"><div>${icon('lock',23)}<span><strong>Private by design</strong><small>No cloud uploads or server-side save storage</small></span></div><div>${icon('shield',23)}<span><strong>One-file editing</strong><small>Import, modify and download — no save library</small></span></div><div>${icon('download',23)}<span><strong>Original preserved</strong><small>Export a new game save with its checksum</small></span></div></section>`;
 }
 function heading(eyebrow,title,subtitle) { return `<div class="page-heading"><div><span class="eyebrow">${eyebrow}</span><h1>${title}</h1><p>${subtitle}</p></div><div class="heading-actions">${ready()?`<button class="button button-quiet" data-action="reset">${icon('refresh',16)} Reset changes</button><button class="button button-primary" data-action="export">${icon('download',17)} Export save</button>`:''}</div></div>`; }
 function guard() { return !ready() ? `<div class="preview-bar">${icon('info',16)} ${state.demo?'You are exploring a sample dashboard. Upload a real .b save to unlock editing and exporting.':'Upload a classic PC save to load your real values and make changes.'}<button data-action="upload">Choose save ${icon('arrow',14)}</button></div>` : ''; }
@@ -369,9 +382,12 @@ function navigateHome({push=true}={}){
  if(push && location.pathname!==HOME_PATH)history.pushState({},'',HOME_PATH);
  closeModal();render();finishNavigation();
 }
-function navigateGame(game,view=null,{push=true}={}){
- if(!GAME_GROUPS.some(g=>g.id===game))return;
- if(state.activeGame!==game)activateWorkspace(game);
+function navigateGame(game,view=null,{push=true,skipPrompt=false}={}){
+ if(!GAME_GROUPS.some(g=>g.id===game))return false;
+ if(state.activeGame!==game){
+   if(!skipPrompt && !confirmDiscard())return false;
+   activateWorkspace(game);
+ }
  state.page='game';state.expandedGame=game;
  const candidate=view??state.view;
  if(currentNav().some(n=>n[0]===candidate))state.view=candidate;
@@ -380,6 +396,7 @@ function navigateGame(game,view=null,{push=true}={}){
  const href=routeForGame(game)+(state.view==='overview'?'':'#'+state.view);
  if(push && location.pathname+location.hash!==href)history.pushState({},'',href);
  closeModal();render();finishNavigation();
+ return true;
 }
 function syncRouteFromLocation(){
  const game=gameForPath(location.pathname);
@@ -387,7 +404,8 @@ function syncRouteFromLocation(){
  const view=location.hash.slice(1);
  // A route without a tab fragment always starts on Overview; switching
  // games within the app preserves their remembered view in memory.
- navigateGame(game,currentNavForGame(game).some(n=>n[0]===view)?view:'overview',{push:false});
+ const changed=navigateGame(game,currentNavForGame(game).some(n=>n[0]===view)?view:'overview',{push:false});
+ if(changed===false)history.replaceState({},'',routeForGame(state.activeGame)+(state.view==='overview'?'':'#'+state.view));
 }
 function currentNavForGame(game){return game==='SA'?nav:['IV','TLAD','TBOGT'].includes(game)?hdNavigation(game):CLASSIC_NAV;}
 function switchView(next){
@@ -416,6 +434,8 @@ async function upload(file){
    }
    if(save instanceof Gta4Save){save.saveName;save.money;save.health;save.armor;save.maxHealth;save.maxArmor;save.progress;save.stuntCount;for(const spec of EPISODE_STATS[save.game])save.getStat(spec.id);}
    const selectedGame=state.pendingImportGame ?? (state.page==='game'?state.activeGame:null);
+   // Parsing/validation happens first. Replacing an edited save requires consent.
+   if(!confirmDiscard({replacing:true}))return;
    activateWorkspace(game,{save,fileName:file.name});
    state.errors=[];state.classicQuery='';state.missionQuery='';state.pendingImportGame=null;
    navigateGame(game,'overview');
@@ -433,7 +453,7 @@ function exportModal(){if(!ready()){notify('Load a real save before exporting.',
  $('#modal-root').innerHTML=`<div class="modal-overlay" data-close="yes"><div class="modal-box" role="dialog" aria-modal="true" aria-label="Export save"><div class="modal-header"><div><span class="eyebrow">SAVE YOUR CHANGES</span><h2>Export savegame</h2></div><button class="icon-button" data-action="close-modal" aria-label="Close dialog">${icon('x',19)}</button></div><p>Exporting creates a fresh copy, updates the checksum and leaves your original untouched. Select the destination game slot.</p><div class="export-summary"><span>Changes applied</span><strong>${state.save.changeCount} modification${state.save.changeCount===1?'':'s'}</strong></div><div class="slot-grid">${Array.from({length:['IV','TLAD','TBOGT'].includes(state.activeGame)?12:8},(_,i)=>`<button type="button" class="slot-btn ${state.selectedSlot===i+1?'chosen':''}" data-slot="${i+1}">SLOT ${i+1}</button>`).join('')}</div><div class="output-preview">${icon('folder',18)} <strong id="download-file-name">${outputName()}</strong><span>${fmt.format(state.save?.bytes.length||SAVE_SIZE)} bytes</span></div><button class="button button-primary export-now" data-action="download">${icon('download',19)} Download edited save</button><p class="modal-hint">Back up the existing save in the game's User Files folder before replacing it.</p></div></div>`;
 }
 function download(){const bytes=state.save.export();const blob=new Blob([bytes],{type:'application/octet-stream'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=outputName();document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);closeModal();notify('Save exported with a fresh valid checksum');}
-function handleAction(action){if(action==='upload'){if(state.pendingImportGame===null)state.pendingImportGame=state.page==='game'?state.activeGame:null;$('#file-input').click();}if(action==='demo'&&state.activeGame==='SA'){state.demo=true;state.save=null;state.fileName=null;Object.assign(state.workspaces[state.activeGame],{save:null,fileName:null,demo:true});render();notify('Sample preview enabled. No file has been modified.');}if(action==='export')exportModal();if(action==='close-modal')closeModal();if(action==='download')download();if(action==='reset'){if(ready()){state.save=state.save.reset();state.workspaces[state.activeGame].save=state.save;render();notify('All edits reverted to your originally imported save');}}if(action==='mission-apply' && state.activeGame==='SA' && state.save instanceof SaSave){
+function handleAction(action){if(action==='upload'){if(state.pendingImportGame===null)state.pendingImportGame=state.page==='game'?state.activeGame:null;$('#file-input').click();}if(action==='demo'&&state.activeGame==='SA'){if(!confirmDiscard({replacing:true}))return;state.demo=true;state.save=null;state.fileName=null;render();notify('Sample preview enabled. No file has been modified.');}if(action==='export')exportModal();if(action==='close-modal')closeModal();if(action==='download')download();if(action==='reset'){if(ready()){state.save=state.save.reset();render();notify('All edits reverted to your originally imported save');}}if(action==='mission-apply' && state.activeGame==='SA' && state.save instanceof SaSave){
   const checkbox=$('#mission-risk-ack');
   if(!checkbox?.checked || !state.pendingMission)return;
   const result=missionRequirements(state.save,state.pendingMission);
@@ -512,6 +532,7 @@ window.addEventListener('dragover',e=>{e.preventDefault();document.body.classLis
 window.addEventListener('dragleave',e=>{if(e.relatedTarget===null)document.body.classList.remove('dragging');});
 window.addEventListener('drop',e=>{e.preventDefault();document.body.classList.remove('dragging');if(e.dataTransfer.files?.length)upload(e.dataTransfer.files[0]);});
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeMobileNavigation();}});
+window.addEventListener('beforeunload',e=>{if(ready()&&state.save.changeCount>0){e.preventDefault();e.returnValue='';}});
 window.addEventListener('popstate',syncRouteFromLocation);
 window.addEventListener('hashchange',syncRouteFromLocation);
 syncRouteFromLocation();
