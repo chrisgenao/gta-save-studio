@@ -35,3 +35,8 @@ The optional GitHub Actions workflow copies the already-portable static project 
 ## Testing and limitations
 
 Run `npm test` to check binary/editor regression tests. Direct asset URLs and routing can also be checked via the browser's Network panel. Automated browser navigation in this environment was blocked by administrator policy, so visual end-to-end validation on the live site remains to be done after publishing.
+
+
+## Legal disclaimer
+
+The site includes a visible footer with the non-affiliation / educational-use notice and a standalone `disclaimer.html`. The deployment workflow publishes that page automatically. Once deployed, check `https://chrisgenao.github.io/gta-save-studio/disclaimer.html`.

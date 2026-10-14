@@ -1,6 +1,6 @@
 {
   "name": "gta-save-studio",
-  "version": "2.7.0",
+  "version": "2.9.0",
   "private": true,
   "type": "module",
   "description": "Offline-first GTA III, Vice City, San Andreas and GTA IV and Episodes from Liberty City PC save editor",

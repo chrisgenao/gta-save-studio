@@ -3,7 +3,7 @@
 
 This repository includes a portable `index.html` and `404.html` for project URLs such as `https://chrisgenao.github.io/gta-save-studio/`. Use the updated **GITHUB-PAGES.md** guide to publish, diagnose 404 errors, and verify asset URLs. Both branch-root publishing and the included GitHub Actions workflow are supported; no `--base` flag is needed.
 
-# GTA Save Studio · v2.6
+# GTA Save Studio · v2.9
 
 A local-first, glassmorphism savegame editor for **Grand Theft Auto III**, **GTA: Vice City**, **GTA: San Andreas**, **GTA IV**, **The Lost and Damned**, and **The Ballad of Gay Tony** (PC saves).
 
@@ -254,3 +254,10 @@ All seven routes and the logo assets were tested via the bundled HTTP server and
 ## Host on GitHub Pages
 
 The project includes an automatic GitHub Actions deployment workflow. See **[GITHUB-PAGES.md](GITHUB-PAGES.md)** for creating the repository, enabling Pages, URL examples, and uploading via Git.
+
+
+## v2.9 — Unofficial educational project disclaimer
+
+Every editor page includes a persistent legal footer and an accessible **Read full disclaimer** link. The sidebar also links to `disclaimer.html`, an independent legal-notice page. The page is compatible with local hosting and GitHub Pages both from the branch root and the included GitHub Actions workflow.
+
+**Disclaimer:** GTA Save Studio is an independent, unofficial fan-made project for educational purposes only. It is not affiliated with, sponsored by, or endorsed by Rockstar Games, Rockstar North, Take-Two Interactive, or their related companies or sites. All related trademarks belong to their owners. Back up saves before editing.
