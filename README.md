@@ -1,4 +1,4 @@
-# GTA Save Studio v3.0 — Search Visibility & Analytics
+# GTA Save Studio v3.1 — GTA IV Compatibility + Search Visibility & Analytics
 
 **New:** Search-friendly pages for all six GTA games, a sitemap, canonical/social metadata, an opt-in Google Analytics 4 integration, and privacy controls. **Start with [`SEO-ANALYTICS-SETUP.md`](SEO-ANALYTICS-SETUP.md)** for GitHub Pages publishing, Google Search Console verification, and statistics setup. Analytics is OFF until you add your public `G-...` measurement ID and a visitor agrees. Save-file content is not transmitted.
 
@@ -9,7 +9,7 @@
 
 This repository includes a portable `index.html` and `404.html` for project URLs such as `https://chrisgenao.github.io/gta-save-studio/`. Use the updated **GITHUB-PAGES.md** guide to publish, diagnose 404 errors, and verify asset URLs. Both branch-root publishing and the included GitHub Actions workflow are supported; no `--base` flag is needed.
 
-# GTA Save Studio · v2.9
+# GTA Save Studio · v3.1
 
 A local-first, glassmorphism savegame editor for **Grand Theft Auto III**, **GTA: Vice City**, **GTA: San Andreas**, **GTA IV**, **The Lost and Damned**, and **The Ballad of Gay Tony** (PC saves).
 
@@ -41,6 +41,17 @@ You can **import any supported PC save on the dashboard**; it automatically open
 
 Game logos live in `assets/` and come from the three image files supplied for the project. The app uses no external image or font hosting. GTA IV uses your supplied transparent PNG logo; the classic trilogy also uses your uploaded logos. The two EFLC episodes use the logos provided by the user.
 
+
+
+## v3.1: GTA IV PC version compatibility
+
+The importer previously rejected two valid Complete Edition saves with the message `GTA IV checksum mismatch`. GTA IV supports more than one checksum footer layout. This release handles the two verified formats **without disabling checksum validation** and fixes the associated **four-byte statistics alignment difference**.
+
+- Original `SGTA4xx`: 12-byte trailer, legacy stat base `0x6c`, 100% progress, 85 missions passed.
+- `SGTA400`: zero-byte trailer, CE stat base `0x68`, ~2.09% progress, 3 missions passed.
+- `SGTA412`: zero-byte trailer, CE stat base `0x68`, ~3.49% progress, 5 missions passed.
+
+Both new files import and export successfully. The genuine samples were used only for local tests and are not included in the project ZIP. Read **[GTA-IV-COMPATIBILITY.md](GTA-IV-COMPATIBILITY.md)** for tested layout signatures, supported vs unverified releases, checksum preservation, and regression-test instructions. **Not every possible edition or platform's save is currently supported.**
 
 ## v2.6: Episodes from Liberty City
 
@@ -95,11 +106,11 @@ To use another port, set the `PORT` environment variable (`$env:PORT=8080` in Po
 | GTA III | `GTA3sf1.b` – `GTA3sf8.b` | 201,820 bytes (`0x3145C`) | `GTA3 User Files` |
 | GTA Vice City | `GTAVCsf1.b` – `GTAVCsf8.b` | 201,828 bytes (`0x31464`) | `GTA Vice City User Files` |
 | GTA San Andreas | `GTASAsf1.b` – `GTASAsf8.b` | 202,752 bytes (`0x31800`) | `GTA San Andreas User Files` |
-| GTA IV | `SGTA400` – `SGTA411` (plus autosave slots) | Variable; example 1,977,934 bytes | `Rockstar Games/GTA IV/Profiles/<profile>` |
+| GTA IV | `SGTA400` – `SGTA411` (plus autosave slots) | Variable; observed 1,977,934 and 1,982,878 bytes | `Rockstar Games/GTA IV/Profiles/<profile>` |
 
 Example on Windows: `C:\Users\<WindowsUser>\Documents\GTA Vice City User Files\GTAVCsf2.b`.
 
-**Definitive Edition, console, mobile, modded/custom layouts and converted/compressed saves are not supported.** GTA IV Complete Edition / GFWL differences may affect compatibility; test exports in the corresponding game build. The parser rejects unknown/corrupt/size-mismatched files rather than writing arbitrary offsets. Back up all original saves and try exported files in-game before relying on them.
+**Definitive Edition, console, mobile, modded/custom layouts and converted/compressed saves are not supported.** GTA IV legacy/GFWL-style and tested Complete Edition-style PC layouts are supported; other builds may have different internal statistics layouts and are deliberately not accepted until verified. Test exports in the corresponding game build. The parser rejects unknown/corrupt/size-mismatched files rather than writing arbitrary offsets. Back up all original saves and try exported files in-game before relying on them.
 
 ## Using the editor
 
@@ -174,7 +185,7 @@ Run tests:
 npm test
 ```
 
-The tests cover byte layouts, edits and export/import round trips, checksum regeneration, invalid file rejection, duplicate schema fields and sidebar behavior, plus mission-chain evidence, cross-chain prerequisites, unknown/blocked states and girlfriend gate inspection. Mission test fixtures are synthetic; browser-level testing for v2.1 was not available in this build environment.
+The tests cover legacy and Complete Edition GTA IV byte layouts, edits and export/import round trips, checksum regeneration, invalid file rejection, duplicate schema fields and sidebar behavior, plus mission-chain evidence, cross-chain prerequisites, unknown/blocked states and girlfriend gate inspection. Mission test fixtures are synthetic; browser-level testing for v2.1 was not available in this build environment.
 
 The website can be hosted as static files: publish `index.html`, `favicon.svg` and the `src/` folder. No server process is needed once those files are served by a web host. `server.mjs` is a simple local development server.
 
@@ -242,9 +253,9 @@ Run `npm test` to execute the included synthetic regression suite. The source in
 
 ## GTA IV save notes and technical verification
 
-The GTA IV PC format differs substantially from the classic trilogy: a 0x110-byte metadata header, 32 `BLOCK` records of variable lengths, a checksum, and an `END` footer. The browser editor leaves unmapped bytes untouched and regenerates the PC checksum with the header's length temporarily reduced by 12, as documented at [GTAMods — Saves (GTA 4)](https://gtamods.com/wiki/Saves_(GTA_4)). Mapped stat types and IDs reference [GTAMods — List of statistics (GTA4)](https://gtamods.com/wiki/List_of_statistics_(GTA4)).
+The GTA IV PC format differs substantially from the classic trilogy: a 0x110-byte metadata header, 32 `BLOCK` records of variable lengths, a checksum, and an `END` footer. The editor preserves unmapped bytes and computes a layout-specific checksum: legacy PC/GFWL-style saves have 12 trailing bytes and need the length adjusted by 12, while the tested Complete Edition-style saves have no trailer and need no adjustment. Block 13 stat offsets also differ. See [GTA-IV-COMPATIBILITY.md](GTA-IV-COMPATIBILITY.md) and [GTAMods — Saves (GTA 4)](https://gtamods.com/wiki/Saves_(GTA_4)). Mapped stat types and IDs reference [GTAMods — List of statistics (GTA4)](https://gtamods.com/wiki/List_of_statistics_(GTA4)).
 
-The included GTA IV codec has been tested against the user-provided genuine `SGTA4xx` (GTA IV, version 57), including no-edit byte identity, editing sample fields, checksum validation, reset, and re-import of the modified save. Real in-game load after editing has **not yet been verified**; keep backups, and never assume an edit to a recorded statistic unlocks the corresponding mission or reward.
+The included GTA IV codec has been tested against the user-provided genuine `SGTA4xx` (legacy-style), `SGTA400` and `SGTA412` (Complete Edition-style). All three are binary version 57; both checksum formats and differing stat offsets now work. Checks include no-edit byte identity, editing sample fields, checksum validation, reset, and re-import of the modified save. Real in-game load after editing has **not yet been verified**; keep backups, and never assume an edit to a recorded statistic unlocks the corresponding mission or reward.
 
 For GTA IV Complete Edition, save files typically live in `Documents\Rockstar Games\GTA IV\Profiles\<profile>\`. Older releases can store them under `%LocalAppData%\Rockstar Games\GTA IV\savegames\user_...`. The `SGTA4XX` suffix represents the zero-based save slot. Your original file is read only in memory; exporting does not overwrite it.
 

@@ -149,20 +149,43 @@ export const EPISODE_STATS=Object.freeze({
 const episodeStatsById=Object.freeze(Object.fromEntries(Object.entries(EPISODE_STATS).map(([game,fields])=>[game,new Map(fields.map(s=>[s.id,s]))])));
 
 
-/** GTA IV checksum is computed over all bytes before the checksum dword,
- * with the header's declared file size temporarily reduced by 12 bytes.
- * That 12-byte delta is the GFWL footer treatment used by PC saves.
+/**
+ * GTA IV checksum: byte-sum up to the checksum dword, with the declared
+ * filesize adjusted to exclude the bytes *after* the END\0 marker.
+ *
+ * There are two verified PC layouts:
+ * - Legacy/GFWL-style: 12 opaque bytes follow the END marker (size - 12).
+ * - Complete Edition-style: END marker ends the file (size unchanged).
+ *
+ * Deriving the trailer length from the parsed BLOCK chain is necessary:
+ * blindly subtracting 12 causes valid Complete Edition saves to be rejected.
+ * Opaque trailer bytes are never modified or included in the sum.
  */
 export function gta4Checksum(input,checksumOffset){
  const bytes=input instanceof Uint8Array?input:new Uint8Array(input);
- if(checksumOffset<12||checksumOffset>bytes.length-4)throw new RangeError('Invalid GTA IV checksum position.');
+ if(!Number.isInteger(checksumOffset)||checksumOffset<12||checksumOffset>bytes.length-8)
+   throw new RangeError('Invalid GTA IV checksum position.');
+ const tailLength=bytes.length-(checksumOffset+8);
+ if(tailLength!==0&&tailLength!==12)
+   throw new Error(`Unsupported GTA IV footer layout (${tailLength} bytes after END).`);
+ const effectiveFileSize=bytes.length-tailLength;
  let sum=0;
  for(let i=0;i<checksumOffset;i++){
-   // Header file-size bytes: game uses filesize - 12 during checksum calculation.
-   const value=(i>=4&&i<=7)?(((bytes.length-12)>>>((i-4)*8))&255):bytes[i];
+   const value=(i>=4&&i<=7)?((effectiveFileSize>>>((i-4)*8))&255):bytes[i];
    sum=(sum+value)>>>0;
  }
  return sum>>>0;
+}
+/**
+ * Select the documented stats region by its block size instead of the game
+ * version number. Both tested layout families report file version 57.
+ * We intentionally refuse unknown stat layouts rather than write into an
+ * adjacent property / mission-state region.
+ */
+export function gta4StatsLayout(bodyLength){
+ if(bodyLength===0x1720)return {offset:0x6c,kind:'Legacy PC / GFWL-style'};
+ if(bodyLength===0x1738)return {offset:0x68,kind:'Complete Edition-style'};
+ throw new Error(`Unmapped GTA IV statistics layout (block 13: 0x${bodyLength.toString(16)} bytes). This save is preserved and has not been modified.`);
 }
 export class Gta4Save {
  constructor(input,{strictChecksum=true}={}){
@@ -184,11 +207,15 @@ export class Gta4Save {
    }
    this.checksumOffset=p;
    if(p+8>this.bytes.length||ascii(this.bytes,p+4,4)!=='END\0')throw new Error('GTA IV save footer is missing.');
+   this.footerTrailerLength=this.bytes.length-(p+8);
+   if(this.footerTrailerLength!==0&&this.footerTrailerLength!==12)throw new Error('Unsupported GTA IV save footer layout.');
    this.checksumValidOnLoad=this.view.getUint32(p,true)===gta4Checksum(this.bytes,p);
    if(strictChecksum&&!this.checksumValidOnLoad)throw new Error('GTA IV checksum mismatch. Import stopped to protect your save.');
    if(this.blocks[0].bodyLength<0xb0||this.blocks[1].bodyLength<0xc0)throw new Error('GTA IV player records are truncated.');
-   if(this.blocks[13].bodyLength<0x1708)throw new Error('GTA IV statistics block is too short.');
-   this.statsStart=this.blocks[13].bodyLength>=0x1720?0x6c:0x54;
+   const layout=gta4StatsLayout(this.blocks[13].bodyLength);
+   this.statsStart=layout.offset;
+   this.saveFormat=layout.kind;
+   this.formatSignature=`stats:${this.blocks[13].bodyLength.toString(16)} / trailer:${this.footerTrailerLength}`;
    this.playerStart=this.blocks[1].start+0x10;
    this.game=detectGta4Episode(this.saveName);
    this.changes=new Set();

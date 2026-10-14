@@ -40,3 +40,8 @@ Run `npm test` to check binary/editor regression tests. Direct asset URLs and ro
 ## Legal disclaimer
 
 The site includes a visible footer with the non-affiliation / educational-use notice and a standalone `disclaimer.html`. The deployment workflow publishes that page automatically. Once deployed, check `https://chrisgenao.github.io/gta-save-studio/disclaimer.html`.
+
+
+## GTA IV compatibility update
+
+The v3.1 update fixes valid GTA IV Complete Edition-style SGTA400/SGTA412 saves being rejected for a checksum mismatch. See [GTA-IV-COMPATIBILITY.md](GTA-IV-COMPATIBILITY.md). Publish the entire project (including `src/gta4-core.js`) to deploy this fix.
