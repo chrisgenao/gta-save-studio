@@ -1,11 +1,13 @@
+import {routeForGame} from './routes.js';
+const assetPath = (name) => (typeof document !== 'undefined' ? new URL('assets/'+name,document.baseURI).pathname : '/assets/'+name);
 /** Independent in-memory workspaces for six PC Grand Theft Auto campaigns. */
 export const GAME_GROUPS=Object.freeze([
-  {id:'III',label:'GTA III',subtitle:'Liberty City · Claude',monogram:'III',route:'/gtaiii',logo:'/assets/gta-iii.png'},
-  {id:'VC',label:'GTA Vice City',subtitle:'Vice City · Tommy',monogram:'VC',route:'/gtavc',logo:'/assets/gta-vc.png'},
-  {id:'SA',label:'GTA San Andreas',subtitle:'San Andreas · CJ',monogram:'SA',route:'/gtasa',logo:'/assets/gta-sa.png'},
-  {id:'IV',label:'GTA IV',subtitle:'Liberty City · Niko',monogram:'IV',route:'/gtaiv',logo:'/assets/gta-iv.png'},
-  {id:'TLAD',label:'The Lost and Damned',subtitle:'GTA IV episode · Johnny',monogram:'TLAD',route:'/tlad',logo:'/assets/gta-tlad.png'},
-  {id:'TBOGT',label:'The Ballad of Gay Tony',subtitle:'GTA IV episode · Luis',monogram:'TBOGT',route:'/tbogt',logo:'/assets/gta-tbogt.png'},
+  {id:'III',label:'GTA III',subtitle:'Liberty City · Claude',monogram:'III',route:routeForGame('III'),logo:assetPath('gta-iii.png')},
+  {id:'VC',label:'GTA Vice City',subtitle:'Vice City · Tommy',monogram:'VC',route:routeForGame('VC'),logo:assetPath('gta-vc.png')},
+  {id:'SA',label:'GTA San Andreas',subtitle:'San Andreas · CJ',monogram:'SA',route:routeForGame('SA'),logo:assetPath('gta-sa.png')},
+  {id:'IV',label:'GTA IV',subtitle:'Liberty City · Niko',monogram:'IV',route:routeForGame('IV'),logo:assetPath('gta-iv.png')},
+  {id:'TLAD',label:'The Lost and Damned',subtitle:'GTA IV episode · Johnny',monogram:'TLAD',route:routeForGame('TLAD'),logo:assetPath('gta-tlad.png')},
+  {id:'TBOGT',label:'The Ballad of Gay Tony',subtitle:'GTA IV episode · Luis',monogram:'TBOGT',route:routeForGame('TBOGT'),logo:assetPath('gta-tbogt.png')},
 ]);
 // View preferences are intentionally stored separately for each game.
 export const WORKSPACE_SETTINGS=Object.freeze(['view','demo','sideFilter','skillGroup','statQuery','classicGroup','classicQuery','missionQuery','selectedSlot','ivGroup','ivQuery']);

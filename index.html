@@ -6,14 +6,38 @@
   <meta name="theme-color" content="#090d17" />
   <meta name="description" content="Edit original PC savegames for GTA III, Vice City, San Andreas, GTA IV, TLAD and TBoGT privately in your browser." />
   <title>GTA Save Studio · Six Campaign Save Garage</title>
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-  <link rel="stylesheet" href="/src/styles.css" />
+  <!-- The base URL adapts to username.github.io, /repo/, and direct game pages. -->
+  <script>
+  (function () {
+    const path = window.location.pathname;
+    const route = /\/(gtaiii|gtavc|gtasa|gtaiv|tlad|tbogt)\/?$/;
+    const root = route.test(path)
+      ? path.replace(route, '/')
+      : path.endsWith('/') ? path : path.slice(0, path.lastIndexOf('/') + 1);
+    const tag = document.createElement('base');
+    tag.href = root;
+    document.head.appendChild(tag);
+  }());
+  </script>
+  <script>
+  (function(){
+    const qs=new URLSearchParams(location.search);
+    const route=qs.get('__page');
+    if(route && /^\/(gtaiii|gtavc|gtasa|gtaiv|tlad|tbogt)$/.test(route)){
+      const query=qs.get('__query');
+      const base = new URL(document.baseURI).pathname.replace(/\/+$/,'');
+      history.replaceState(null,'',base+route+(query?'?'+query:'')+location.hash);
+    }
+  }());
+  </script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
+  <link rel="stylesheet" href="src/styles.css" />
 </head>
 <body>
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <div id="app" class="app-shell">
     <aside class="sidebar" id="primary-sidebar" aria-label="Workspace navigation">
-      <a class="brand" data-home="true" href="/" aria-label="Go to the main dashboard">
+      <a class="brand" data-home="true" href="." aria-label="Go to the main dashboard">
         <div class="brand-symbol">GTA<span>+</span></div>
         <div class="brand-type">SAVE <strong>STUDIO</strong><span>III • VC • SA • IV • EFLC</span></div>
       </a>
@@ -39,6 +63,6 @@
   </div>
   <input id="file-input" type="file"  hidden />
   <div id="modal-root"></div><div id="toast-root" role="status" aria-live="polite"></div>
-  <script type="module" src="/src/app.js"></script>
+  <script type="module" src="src/app.js"></script>
 </body>
 </html>

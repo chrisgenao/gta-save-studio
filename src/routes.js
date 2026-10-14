@@ -1,6 +1,7 @@
 /** Client-side routes served by the included static Node server. */
-export const HOME_PATH = '/';
-export const GAME_PATHS = Object.freeze({III:'/gtaiii',VC:'/gtavc',SA:'/gtasa',IV:'/gtaiv',TLAD:'/tlad',TBOGT:'/tbogt'});
+const BASE = typeof document !== 'undefined' ? new URL(document.baseURI).pathname.replace(/\/+$/,'') : '';
+export const HOME_PATH = BASE + '/';
+export const GAME_PATHS = Object.freeze({III:BASE+'/gtaiii',VC:BASE+'/gtavc',SA:BASE+'/gtasa',IV:BASE+'/gtaiv',TLAD:BASE+'/tlad',TBOGT:BASE+'/tbogt'});
 export function routeForGame(game) {
   if (!Object.hasOwn(GAME_PATHS,game)) throw new Error('Unsupported game route.');
   return GAME_PATHS[game];

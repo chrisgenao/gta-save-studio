@@ -1,60 +1,37 @@
-# Deploy GTA Save Studio on GitHub Pages
+# GTA Save Studio — GitHub Pages fix for chrisgenao/gta-save-studio
 
-This repository includes **automatic GitHub Pages deployment**. The browser runs the editor locally; no database, server process, or paid hosting is necessary.
+This package fixes the `404` errors for `app.js`, `styles.css`, `favicon.svg`, and the game logos on project-hosted GitHub Pages. It works at `https://chrisgenao.github.io/gta-save-studio/` and at other GitHub Pages repository paths.
 
-## One-time setup (GitHub website + Git)
+## Fastest fix: replace the repository files
 
-1. Create a **public** repository at https://github.com/new, e.g. `gta-save-studio`. You can alternatively name it `YOUR_USERNAME.github.io` to publish at the site root.
-2. Upload **the contents of this project folder**, not the `.zip` file and not a nested project folder. The root of the repository should contain `index.html`, `src/`, `assets/`, `scripts/`, and `.github/workflows/pages.yml`.
-3. GitHub repository **Settings → Pages → Build and deployment → Source → GitHub Actions**.
-4. Commit/push the files to the `main` branch. The `Publish GTA Save Studio` workflow automatically runs the tests and publishes the website.
-5. In the GitHub repository, open **Actions** to see the deployment job. When it succeeds, open the URL from **Settings → Pages**.
+1. Extract `GTA-Save-Studio-GitHub-Pages-FIXED.zip` on your computer.
+2. Open https://github.com/chrisgenao/gta-save-studio and select **Add file → Upload files**.
+3. Drag the **contents of the extracted folder** onto the upload area, *not the containing folder or ZIP*. Upload all source files and folders (including the corrected `index.html`, `src/`, `404.html`, and `scripts/`). If GitHub warns about overwriting, commit replacements. GitHub's web upload UI may not allow some overwrite workflows; in that case, use GitHub Desktop or Git to copy the files over and commit.
+4. In your repository **Settings → Pages → Build and deployment**, choose one of:
+   - **GitHub Actions** (recommended): the provided `.github/workflows/pages.yml` builds and deploys the static site. Visit the **Actions** tab and ensure **Publish GTA Save Studio** succeeds.
+   - **Deploy from a branch**: select `main`, `/(root)`, and save. This also works because the source `index.html` uses dynamic asset paths and there is a `404.html` route fallback.
+5. Wait for the Pages deployment. Refresh with **Ctrl+Shift+R** (Windows) or **Cmd+Shift+R** (Mac).
 
-Site URL examples:
-- `https://YOUR_USERNAME.github.io/gta-save-studio/` for a repository named `gta-save-studio`.
-- `https://YOUR_USERNAME.github.io/` for a repository named `YOUR_USERNAME.github.io`.
+Your live site: https://chrisgenao.github.io/gta-save-studio/
 
-The script derives the correct asset and URL prefixes from `GITHUB_REPOSITORY`, so **do not hand-edit** the paths.
+## Check the assets
 
-## Command-line upload alternative
+These URLs should now return actual files rather than a GitHub 404 page:
 
-In the extracted folder, using Git in a shell (replace YOUR_USERNAME and repository name):
+- https://chrisgenao.github.io/gta-save-studio/src/app.js
+- https://chrisgenao.github.io/gta-save-studio/src/styles.css
+- https://chrisgenao.github.io/gta-save-studio/favicon.svg
+- https://chrisgenao.github.io/gta-save-studio/assets/gta-tlad.png
+- https://chrisgenao.github.io/gta-save-studio/assets/gta-tbogt.png
 
-```bash
-git init
-git add .
-git commit -m "Publish GTA Save Studio"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/gta-save-studio.git
-git push -u origin main
-```
+The project site should load at `/gta-save-studio/`, and direct game URLs such as `/gta-save-studio/gtasa` should work via the `404.html` redirect.
 
-Create the empty GitHub repository before running those commands, and **do not initialize it with a README** if using the command-line approach.
+## Technical details
 
-## Local usage
+The page computes its hosting root dynamically in the browser and installs a `<base>` element before loading CSS or JavaScript. The JavaScript router and logo URLs use `document.baseURI` too. Do not reintroduce root-relative asset links such as `src="/src/app.js"` because those resolve at the domain root, not the GitHub project path.
 
-Run `start-windows.bat` or `npm start` and visit `http://localhost:5173/`. GitHub Pages does not run `server.mjs`; the publishing workflow builds a static site in `dist/`.
+The optional GitHub Actions workflow copies the already-portable static project to `dist/`; Node.js is not required by GitHub Pages at runtime. The source ZIP excludes actual player save files.
 
-You can test the production files locally for a root-hosted site with:
+## Testing and limitations
 
-```bash
-node scripts/build-pages.mjs
-```
-
-For a project site, pass a base path explicitly:
-
-```bash
-node scripts/build-pages.mjs --base /gta-save-studio
-```
-
-The generated `dist/` folder is a deployment artifact; upload the **source** project, not `dist/`, if using the workflow.
-
-## How the clean URLs work
-
-GitHub Pages normally returns a 404 for `/gtasa` on a static project site. The generated custom `404.html` redirects the request to the dashboard, which restores the intended `/gtasa` route before loading the application. This supports direct links, refreshing, browser history, and all six game routes.
-
-## Privacy and limitations
-
-GTA saves are read and edited in your browser. Uploading a save **into the running app** is not the same as uploading it into the GitHub repository. Never commit `.b` saves or `SGTA4xx` files you want to keep private.
-
-Publishing a public repository makes its source code and included assets publicly accessible. This project contains no user saves in its distribution.
+Run `npm test` to check binary/editor regression tests. Direct asset URLs and routing can also be checked via the browser's Network panel. Automated browser navigation in this environment was blocked by administrator policy, so visual end-to-end validation on the live site remains to be done after publishing.

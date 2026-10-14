@@ -37,10 +37,11 @@ test('all custom logos are included and used instead of sidebar monograms',()=>{
  assert.doesNotMatch(app,/game-accordion-monogram/);
 });
 
-test('all routes use absolute stylesheet, entry script and icon URLs for refresh',()=>{
- assert.match(html,/href="\/src\/styles\.css"/);
- assert.match(html,/src="\/src\/app\.js"/);
- assert.match(html,/href="\/favicon\.svg"/);
+test('all routes use repository-relative stylesheet, entry script and icon URLs for refresh',()=>{
+ assert.match(html,/href="src\/styles\.css"/);
+ assert.match(html,/src="src\/app\.js"/);
+ assert.match(html,/href="favicon\.svg"/);
+ assert.match(html,/document\.createElement\('base'\)/);
  assert.match(server,/spaPaths\.has\(pathname\)/);
  assert.match(server,/'\.png':'image\/png'/);
 });

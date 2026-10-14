@@ -1,0 +1,13 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"/><title>Opening GTA Save Studio…</title></head><body><script>
+(function(){
+ const path=location.pathname;
+ const match=path.match(/^(.*)\/(gtaiii|gtavc|gtasa|gtaiv|tlad|tbogt)\/?$/);
+ if(!match){document.body.textContent='Page not found';return;}
+ const root=(match[1]||'')+'/';
+ const target=new URL(root,location.origin);
+ target.searchParams.set('__page','/'+match[2]);
+ if(location.search)target.searchParams.set('__query',location.search.slice(1));
+ target.hash=location.hash;
+ location.replace(target.href);
+}());
+</script><noscript>Enable JavaScript to open GTA Save Studio.</noscript></body></html>

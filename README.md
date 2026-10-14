@@ -1,3 +1,8 @@
+
+## GitHub Pages project deployment
+
+This repository includes a portable `index.html` and `404.html` for project URLs such as `https://chrisgenao.github.io/gta-save-studio/`. Use the updated **GITHUB-PAGES.md** guide to publish, diagnose 404 errors, and verify asset URLs. Both branch-root publishing and the included GitHub Actions workflow are supported; no `--base` flag is needed.
+
 # GTA Save Studio · v2.6
 
 A local-first, glassmorphism savegame editor for **Grand Theft Auto III**, **GTA: Vice City**, **GTA: San Andreas**, **GTA IV**, **The Lost and Damned**, and **The Ballad of Gay Tony** (PC saves).

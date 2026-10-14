@@ -10,23 +10,21 @@ function build(repo){
  const contents=(file)=>readFileSync(resolve(root,'dist',file),'utf8');
  return {index:contents('index.html'),routes:contents('src/routes.js'),workspace:contents('src/workspace-core.js'),app:contents('src/app.js'),notFound:contents('404.html')};
 }
-test('GitHub Pages project site builds correct repo-prefix assets and SPA paths',()=>{
- const x=build('example/gta-save-studio');
- assert.match(x.index,/src="\/gta-save-studio\/src\/app\.js"/);
- assert.match(x.index,/href="\/gta-save-studio\/src\/styles\.css"/);
- assert.match(x.index,/href="\/gta-save-studio\/"/);
- assert.match(x.routes,/SA:'\/gta-save-studio\/gtasa'/);
- assert.match(x.workspace,/route:'\/gta-save-studio\/gtasa'/);
- assert.match(x.workspace,/logo:'\/gta-save-studio\/assets\/gta-sa.png'/);
- assert.match(x.app,/src="\/gta-save-studio\/assets\/gta-iii.png"/);
- assert.match(x.notFound,/__page/);
- assert.match(x.index,/replaceState/);
- assert.ok(existsSync(resolve(root,'dist','.nojekyll')));
-});
-test('GitHub Pages root site builds unprefixed URLs',()=>{
- const x=build('example/example.github.io');
- assert.match(x.index,/src="\/src\/app\.js"/);
- assert.match(x.routes,/SA:'\/gtasa'/);
- assert.match(x.workspace,/logo:'\/assets\/gta-sa.png'/);
- assert.doesNotMatch(x.index,/example\.github\.io\/src/);
-});
+for (const repo of ['example/gta-save-studio','example/example.github.io']) {
+ test(`GitHub Pages universal build works with ${repo} without hardcoded domain or repository path`,()=>{
+  const x=build(repo);
+  assert.match(x.index,/src="src\/app\.js"/);
+  assert.match(x.index,/href="src\/styles\.css"/);
+  assert.match(x.index,/href="favicon\.svg"/);
+  assert.match(x.index,/document\.createElement\('base'\)/);
+  assert.match(x.routes,/new URL\(document\.baseURI\)/);
+  assert.match(x.workspace,/route:routeForGame\('SA'\)/);
+  assert.match(x.workspace,/assetPath\('gta-sa.png'\)/);
+  assert.match(x.app,/assetPath\('gta-iii.png'\)/);
+  assert.match(x.notFound,/__page/);
+  assert.match(x.index,/replaceState/);
+  for (const path of ['src/app.js','src/styles.css','favicon.svg','404.html','.nojekyll','assets/gta-sa.png']) assert.ok(existsSync(resolve(root,'dist',path)),path);
+  assert.ok(existsSync(resolve(root,'404.html')),'404.html must also exist in branch publishing root');
+  assert.ok(existsSync(resolve(root,'.nojekyll')),'NoJekyll must also exist in branch publishing root');
+ });
+}
